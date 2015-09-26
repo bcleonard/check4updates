@@ -1,0 +1,45 @@
+#! /bin/bash
+
+# Source configuration.
+. /etc/sysconfig/check4updates
+
+mkdir -p /tmp/check4updates.$$
+TMPFILE=`mktemp /tmp/check4updates.$$/XXXXXXXXXX` || exit 1
+TMP1=`mktemp /tmp/check4updates.$$/XXXXXXXXXX` || exit 1
+
+if [ ! -z "$YUM" -a -x /usr/bin/yum ]; then
+  yum -e 0 -d 0 check-update > $TMP1
+  if [ $? = 100 ]; then
+    echo -e "===\n=== yum reports available updates:\n===" >> $TMPFILE
+    cat $TMP1 >> $TMPFILE
+  fi
+fi
+
+if [ ! -z "$APT" -a -x /usr/bin/apt-get ]; then
+  (apt-get -qq update; apt-get -qq -s dist-upgrade) > $TMP1
+  if [ -s $TMP1 ]; then
+    echo -e "===\n=== apt reports available updates:\n===" >> $TMPFILE
+    cat $TMP1 >> $TMPFILE
+  fi
+fi
+
+if [ ! -z "$SMART" -a -x /usr/bin/smart ]; then
+  smart update > /dev/null 2>&1
+  smart upgrade < /dev/null > $TMP1
+  if ! grep "No interesting upgrades available" $TMP1 > /dev/null; then
+    echo -e "===\n=== smart reports available updates:\n===" >> $TMPFILE
+    cat $TMP1 >> $TMPFILE
+  fi
+fi
+
+if [ -s $TMPFILE ]; then
+  if [ "$1" = "-m" ]; then
+    mail -s "Updates available for `hostname`" $MAILADDR < $TMPFILE
+  else
+    echo "Updates available for `hostname`"
+    cat $TMPFILE
+  fi
+fi
+
+rm -f $TMPFILE $TMP1
+rm -fr /tmp/check4updates.*

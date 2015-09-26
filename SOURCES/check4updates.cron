@@ -1,0 +1,5 @@
+#! /bin/sh
+
+# Randomize within 5 min
+sleep $(expr $RANDOM \% 300)
+check4updates -m

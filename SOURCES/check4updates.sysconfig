@@ -1,0 +1,9 @@
+# Whom to send the report to
+MAILADDR=root
+
+# Comment the next line to suppress nighly smart update checks
+SMART=no
+# Comment the next line to suppress nighly apt update checks
+APT=no
+# Comment the next line to suppress nighly yum update checks
+YUM=yes
